@@ -1,0 +1,72 @@
+<resources>
+    <string name="app_name">MyApplication</string>
+    <string name="kakao_api_key"> 457e2d78f2db88e6703e7bf2759056a7</string>
+    <string name="kakao_app_key"> 309368114c21b6bae4369ba53decd87d</string>
+
+    <string name="map_view_demo_title">MapView</string>
+    <string name="map_view_demo_desc">기본 맵뷰, 타일 종류</string>
+
+    <string name="CreateCourse_title">코스 생성</string>
+    <string name="CreateCourse_desc">코스 생성, 저장</string>
+
+    <string name="Login_title">로그인</string>
+    <string name="Login_desc">로그인</string>
+
+    <string name="no_demos">No demos</string>
+
+    <string name="press_menu">Menu 버튼을 누르세요.</string>
+
+    <string name="demo_events_help">지도뷰를 탭, 길게 탭, 드래그 하세요.</string>
+
+    <string name="go_to_hannam">Go to Hannam</string>
+    <string name="go_to_pangyo">Go to Pangyo</string>
+
+    <!-- Main activity -->
+    <string name="button_start">Start game</string>
+    <string name="button_bt">Setup Bluetooth</string>
+    <string name="button_credit">Credit</string>
+    <string name="button_exit">Exit</string>
+    <string name="credit_text">Game design by HardCopyWorld.com\n
+        Supports Google cardboard VR\n
+        Powered by Rajawali 3D engine\n
+        Mothership, Dark fighter object from Rajawali VR example\n
+        Destroyer object from MacGyver(http://www.thingiverse.com/MacGyver/about)\n
+        Skybox from Space Engine(http://en.spaceengine.org/forum/21-514-1)\n\n
+        Get the full java source at: https://github.com/godstale/VR-Defense-Game
+    </string>
+
+    <!-- Bluetooth -->
+    <string name="bt_title">Bluetooth</string>
+    <string name="bt_state_init">initializing</string>
+    <string name="bt_state_wait">waiting.. (select a device manually)</string>
+    <string name="bt_state_connect">connecting</string>
+    <string name="bt_state_connected">connected</string>
+    <string name="bt_state_error">error</string>
+    <string name="bt_not_enabled_leaving">Bluetooth is not enabled. Set the bluetooth on at phone settings.</string>
+    <string name="bt_cmd_sending_error">Transaction failed</string>
+
+    <!-- Options Menu -->
+    <string name="connect">Connect\na device</string>
+    <string name="discoverable">Make\ndiscoverable</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="renderer_category">Wallpaper Renderer</string>
+    <string name="renderer_picker_title">Renderer</string>
+    <string name="renderer_picker_summary">Choose the renderer class to use for the wallpaper demo.</string>
+    <string name="touch_a_monkey">Touch a monkey :)</string>
+    <string name="add_cube">Add Cube</string>
+    <string name="remove_cube">Remove Random Cube</string>
+    <string name="example_scene_add_remove_objects">Add/Remove Children</string>
+
+    <!-- DeviceListActivity -->
+    <string name="scanning">Scanning for devices...</string>
+    <string name="select_device">Select a device to connect</string>
+    <string name="none_paired">No devices have been paired</string>
+    <string name="none_found">No devices found</string>
+    <string name="title_paired_devices">Paired Devices</string>
+    <string name="title_other_devices">Other Available Devices</string>
+    <string name="button_scan">Scan for devices</string>
+    <string name="button_cancel">Cancel</string>
+
+</resources>
