@@ -119,7 +119,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
     private MapPoint[] selectPolylinePointArr;
     private int pointPosition = 0;
     private float minX=0, minY=0, maxX=0, maxY=0;
-    static boolean checkUserTarget = true;
+    static boolean checkUserTarget = false;
     private boolean gpsEnable = false;
     private ProgressDialog pd;
 
@@ -223,7 +223,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
                     finish();
 
 
-                }else {
+                }else { //
 
                     Toast.makeText(this, "퍼미션이 거부되었습니다. 설정(앱 정보)에서 퍼미션을 허용해야 합니다. ", Toast.LENGTH_LONG).show();
 
@@ -385,6 +385,8 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
             if(!creatingCheck) {
                 if(minX<=x&&x<=maxX && minY<=y&&y<=maxY) { // 선택된 폴리라인의 경로에 있을 시 수행
                     escapeCheckCount = 0; // 이탈 경고 횟수 초기화
+                    if(speed > 200)
+                        speed = polylineVector.get(pointNum-1).speed;
 
                     polylineVector.add(new PolylinePoint(pointNum, x, y, time, distance, speed));
                     pointNum++;
@@ -402,6 +404,8 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
             } else {
                 pointNum++;
                 polyline.addPoint(MapPoint.mapPointWithGeoCoord(x, y));
+                if(speed > 200)
+                    speed = polylineVector.get(pointNum-1).speed;
                 polylineVector.add(new PolylinePoint(pointNum, x, y, time, distance, speed));
 
                 Log.i("onCurrentLocationUpdate", "time : " + time);
@@ -572,25 +576,37 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         if(selectedNum==0) {
             Toast.makeText(this, "선택된 코스 없음", Toast.LENGTH_SHORT).show();
         } else {
-            tableNum = selectedNum;
-            drive_button.setVisibility(View.GONE);
-            create_button.setVisibility(View.GONE);
-            target_select_button.setVisibility(View.VISIBLE);
-            moving_distance_text.setVisibility(View.VISIBLE);
-            speed_text.setVisibility(View.VISIBLE);
-            time_textview.setVisibility(View.VISIBLE);
-            remaining_distance_text.setVisibility(View.VISIBLE);
+            double tempX = selectedPolyline.getPoint(0).getMapPointGeoCoord().latitude;
+            double tempY = selectedPolyline.getPoint(0).getMapPointGeoCoord().longitude;
 
-            RankingCheck rankingCheck = new RankingCheck();
-            rankingCheck.execute("http://" + IP_ADDRESS + "/rankingCheck.php");
+            MapPoint geoPoint = mapView.getMapCenterPoint();
+            float x = (float) (Math.round(geoPoint.getMapPointGeoCoord().latitude*100000000)/100000000.0);
+            float y = (float) (Math.round(geoPoint.getMapPointGeoCoord().longitude*100000000)/100000000.0);
 
-            mapView.removeAllPolylines();  // 190602
-            mapView.removeAllPOIItems();
+            if(tempX-0.0001 <= x && x <= tempX+0.0001 && tempY-0.0001 <= y && y <= tempY+0.0001) {
+                tableNum = selectedNum;
+                drive_button.setVisibility(View.GONE);
+                create_button.setVisibility(View.GONE);
+                target_select_button.setVisibility(View.VISIBLE);
+                moving_distance_text.setVisibility(View.VISIBLE);
+                speed_text.setVisibility(View.VISIBLE);
+                time_textview.setVisibility(View.VISIBLE);
+                remaining_distance_text.setVisibility(View.VISIBLE);
 
-            mapView.addPolyline(selectedPolyline);
+                RankingCheck rankingCheck = new RankingCheck();
+                rankingCheck.execute("http://" + IP_ADDRESS + "/rankingCheck.php");
 
-            Log.i("point개수", Integer.toString(selectedPolyline.getPointCount()));
-            Log.i("pointTag", Integer.toString(selectedPolyline.getTag()));
+                mapView.removeAllPolylines();  // 190602
+                mapView.removeAllPOIItems();
+
+                mapView.addPolyline(selectedPolyline);
+
+                Log.i("point개수", Integer.toString(selectedPolyline.getPointCount()));
+                Log.i("pointTag", Integer.toString(selectedPolyline.getTag()));
+            } else {
+                Toast.makeText(this, "코스 시작 위치가 아님", Toast.LENGTH_SHORT).show();
+            }
+
         }
     }
 
@@ -645,15 +661,13 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
             TargetRecord temp = it.next();
             if (temp.id.equals(userID)) { // 코스 주행 기록 중 사용자 아이디 있을 시
                 checkUsedCourse = true;
-                if (!selectedTargetID.equals(userID)) { // 비교하는 대상이 본인 아이디가 아닐 시
-                    getPostUserRecord("record" + tableNum + userID);
-                    checkUserTarget = false;
-                    break;
-                }
             }
 
-
-
+        }
+        if (selectedTargetID.equals(userID))  // 비교하는 대상이 본인 아이디 일 시
+            checkUserTarget = true;
+        if(checkUsedCourse && !checkUserTarget) {
+            getPostUserRecord("record" + tableNum + userID);
         }
 
     }
@@ -790,9 +804,6 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         time_textview.setVisibility(View.GONE);
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOff);
         mapView.setShowCurrentLocationMarker(false);
-
-
-
 
         speed = Math.round(sumSpeed / handleCount * 100) / 100;
         time = getTimeOut();
