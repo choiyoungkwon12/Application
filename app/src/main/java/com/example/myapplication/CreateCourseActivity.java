@@ -1213,7 +1213,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
     }
 
 
-    class BtHandler extends Handler {
+    class BtHandler extends Handler {//
         public void handleMessage(Message msg) {
             switch(msg.what) {
                 // Received packets from remote
