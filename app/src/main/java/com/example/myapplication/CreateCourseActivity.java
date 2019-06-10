@@ -67,7 +67,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
     static String IP_ADDRESS = "cpbike.dothome.co.kr/cpbike";
     static float speed=0, distance=0;
     static String time="";
-    private TextView time_textview, speed_text, moving_distance_text, remaining_distance_text, connection_status_textview, count_text;
+    private TextView time_textview, speed_text, moving_distance_text, connection_status_textview, count_text;
     private ListView target_list;
     private int pointNum=0;
     private HashMap<Integer, Boolean> pOIItemSelectedStatus = new HashMap<>();
@@ -152,7 +152,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         mapView.setMapViewEventListener(this);
         mapView.setPOIItemEventListener(this);
 
-        mapView.setZoomLevel(4, true);
+        mapView.setZoomLevel(2, true);
 
         create_button = (Button) findViewById(R.id.create_button);
         drive_button = (Button) findViewById(R.id.drive_button);
@@ -170,7 +170,6 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         time_textview = (TextView) findViewById(R.id.time_textview);
         speed_text = (TextView) findViewById(R.id.speed_text);
         moving_distance_text = (TextView) findViewById(R.id.moving_distance_text);
-        remaining_distance_text = (TextView) findViewById(R.id.remaining_distance_text);
         connection_status_textview = (TextView) findViewById(R.id.connection_status_textview);
 
         create_button.setVisibility(View.VISIBLE);
@@ -395,7 +394,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
                     Log.i("onCurrentLocationUpdate", "pointNum : " + Integer.toString(pointNum));
                 } else {
                     escapeCheckCount++; // 이탈 횟수 + 1
-                    Log.i("이탈횟수", Integer.toString(escapeCheckCount));
+                    Toast.makeText(this, "이탈 경고 횟수 : " + escapeCheckCount, Toast.LENGTH_SHORT).show(); // 사용자에게 이탈 횟수 알림
                     // if(escapeCheck > 7) // 이탈 횟수 3회 초과 시 강제 종료
                     // Toast.makeText(this, "이탈 경고 횟수 : " + escapeCheck, Toast.LENGTH_SHORT).show(); // 사용자에게 이탈 횟수 알림
                     // if(deleteDriveTable) // 테이블 생성했을 시 삭제
@@ -591,7 +590,6 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
                 moving_distance_text.setVisibility(View.VISIBLE);
                 speed_text.setVisibility(View.VISIBLE);
                 time_textview.setVisibility(View.VISIBLE);
-                remaining_distance_text.setVisibility(View.VISIBLE);
 
                 RankingCheck rankingCheck = new RankingCheck();
                 rankingCheck.execute("http://" + IP_ADDRESS + "/rankingCheck.php");
