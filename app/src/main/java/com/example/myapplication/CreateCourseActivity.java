@@ -394,6 +394,11 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
                     Log.i("onCurrentLocationUpdate", "pointNum : " + Integer.toString(pointNum));
                 } else {
                     escapeCheckCount++; // 이탈 횟수 + 1
+                    if(speed > 200)
+                        speed = polylineVector.get(pointNum-1).speed;
+
+                    polylineVector.add(new PolylinePoint(pointNum, x, y, time, distance, speed));
+                    pointNum++;
                     Toast.makeText(this, "이탈 경고 횟수 : " + escapeCheckCount, Toast.LENGTH_SHORT).show(); // 사용자에게 이탈 횟수 알림
                     // if(escapeCheck > 7) // 이탈 횟수 3회 초과 시 강제 종료
                     // Toast.makeText(this, "이탈 경고 횟수 : " + escapeCheck, Toast.LENGTH_SHORT).show(); // 사용자에게 이탈 횟수 알림
@@ -663,7 +668,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
 
         }
         if (selectedTargetID.equals(userID))  // 비교하는 대상이 본인 아이디 일 시
-            checkUserTarget = true;
+            checkUserTarget = false;
         if(checkUsedCourse && !checkUserTarget) {
             getPostUserRecord("record" + tableNum + userID);
         }
