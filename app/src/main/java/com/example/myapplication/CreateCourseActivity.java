@@ -47,8 +47,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.Vector;
 
 
@@ -84,6 +82,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
     private float sumSpeed = 0;
     private boolean deleteDriveTable = false;
     private float AverageSpeed = 0;
+    static String activityStatus = "";
 
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
     private static final int PERMISSIONS_REQUEST_CODE = 100;
@@ -122,11 +121,14 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
     static boolean checkUserTarget = false;
     private boolean gpsEnable = false;
     private ProgressDialog pd;
+    private int timeCount = 0;
 
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        activityStatus = "Main";
         Log.i(LOG_TAG, "onCreate.Start");
 
 
@@ -231,7 +233,6 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
 
         }
     }
-
     void checkRunTimePermission(){
 
         //런타임 퍼미션 처리
@@ -272,9 +273,36 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         }
 
     }
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        switch (activityStatus) {
+            case "Main" : {
+                Log.i("onBackPressed", activityStatus);
+                Intent intent = new Intent(getApplicationContext(),LoginActivity.class);
+                startActivity(intent);
+                break;
+            }
+            case "CreateCourse" : {
+                Log.i("onBackPressed", activityStatus);
 
+                create_button.setVisibility(View.VISIBLE);
+                drive_button.setVisibility(View.VISIBLE);
+                drive_button.setEnabled(false); // 코스 선택 미완료 상태인 초기 코스 주행 버튼 비활성화(영권)
 
+                creatingCheck = false;
+                create_start_button.setVisibility(View.GONE);
+                moving_distance_text.setVisibility(View.GONE);
+                speed_text.setVisibility(View.GONE);
+                time_textview.setVisibility(View.GONE);
+                OutputCourse getData = new OutputCourse();
+                getData.execute("http://" + IP_ADDRESS + "/OutputCourse.php");
+                deleteTable(tableNum, userID);
+                break;
+            }
 
+        }
+    }
     //여기부터는 GPS 활성화를 위한 메소드들
     private void showDialogForLocationServiceSetting() {
 
@@ -328,7 +356,6 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
                 || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
     }
 
-
     public void showProgress(String str) {
         if( pd == null ) {
             pd = new ProgressDialog(this);
@@ -338,6 +365,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         pd.setMessage(str);
         pd.show();
     }
+
     public void hideProgress() {
         if (pd != null && pd.isShowing()) {
             pd.dismiss();
@@ -351,8 +379,8 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOff);
         mapView.setShowCurrentLocationMarker(false);
         finalize();
+        finish();
     }
-
 
     @Override
     public void onReverseGeoCoderFoundAddress(MapReverseGeoCoder mapReverseGeoCoder, String s) {
@@ -366,68 +394,84 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
 
     @Override
     public void onCurrentLocationUpdate(MapView mapView, MapPoint currentLocation, float accuracyInMeters) {
-        LocationManager manager = (LocationManager)mContext.getSystemService(Context.LOCATION_SERVICE);
+/*         LocationManager manager = (LocationManager)mContext.getSystemService(Context.LOCATION_SERVICE);
         if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             hideProgress();
         }
-
-        String time = getTimeOut();
-        if(driving == true) {
-
-
-            MapPoint.GeoCoordinate mapPointGeo = currentLocation.getMapPointGeoCoord();
-            float x = (float) (Math.round(mapPointGeo.latitude*100000000)/100000000.0);
-            float y = (float) (Math.round(mapPointGeo.longitude*100000000)/100000000.0);
-
-
-
-            if(!creatingCheck) {
-                if(minX<=x&&x<=maxX && minY<=y&&y<=maxY) { // 선택된 폴리라인의 경로에 있을 시 수행
-                    escapeCheckCount = 0; // 이탈 경고 횟수 초기화
-                    if(speed > 200)
-                        speed = polylineVector.get(pointNum-1).speed;
-
-                    polylineVector.add(new PolylinePoint(pointNum, x, y, time, distance, speed));
-                    pointNum++;
-
-
-                    Log.i("onCurrentLocationUpdate", "pointNum : " + Integer.toString(pointNum));
-                } else {
-                    escapeCheckCount++; // 이탈 횟수 + 1
-                    if(speed > 200)
-                        speed = polylineVector.get(pointNum-1).speed;
-
-                    polylineVector.add(new PolylinePoint(pointNum, x, y, time, distance, speed));
-                    pointNum++;
-                    Toast.makeText(this, "이탈 경고 횟수 : " + escapeCheckCount, Toast.LENGTH_SHORT).show(); // 사용자에게 이탈 횟수 알림
-                    // if(escapeCheck > 7) // 이탈 횟수 3회 초과 시 강제 종료
-                    // Toast.makeText(this, "이탈 경고 횟수 : " + escapeCheck, Toast.LENGTH_SHORT).show(); // 사용자에게 이탈 횟수 알림
-                    // if(deleteDriveTable) // 테이블 생성했을 시 삭제
-//                     deleteRecordTable(tableNum, userID);
-                }
-            } else {
-                pointNum++;
-                polyline.addPoint(MapPoint.mapPointWithGeoCoord(x, y));
-                if(speed > 200)
-                    speed = polylineVector.get(pointNum-1).speed;
-                polylineVector.add(new PolylinePoint(pointNum, x, y, time, distance, speed));
-
-                Log.i("onCurrentLocationUpdate", "time : " + time);
-                Log.i("onCurrentLocationUpdate", Integer.toString(polylineVector.size()));
-                mapView.addPolyline(polyline);
-                Log.i("onCurrentLocationUpdate", "update");
+        */
+        if(pd.isShowing()) {
+            if(timeCount < 3) {
+                timeCount ++;
+                Log.i("timeCount", Integer.toString(timeCount));
             }
-            Log.i("onCurrentLocationUpdate", "time : " + time);
-
-
-
-
-
-
-
-
-
+            if(timeCount == 3) {
+                hideProgress();
+                timeCount = 5;
+                Log.i("timeCount", Integer.toString(timeCount));
+            }
         }
+
+        if(driving == true) {
+            if(timeCount > 0) {
+                if(timeCount == 5)
+                    count_text.setVisibility(View.VISIBLE);
+                count_text.setText(Integer.toString(timeCount));
+                timeCount--;
+            } else {
+                if(timeCount == 0) {
+                    count_text.setVisibility(View.GONE);
+                    startTime = SystemClock.elapsedRealtime();
+                    System.out.println(startTime);
+                    myTimer.sendEmptyMessage(0);
+                    timeCount = -1;
+                }
+
+                String time = getTimeOut();
+
+                MapPoint.GeoCoordinate mapPointGeo = currentLocation.getMapPointGeoCoord();
+                float x = (float) (Math.round(mapPointGeo.latitude*100000000)/100000000.0);
+                float y = (float) (Math.round(mapPointGeo.longitude*100000000)/100000000.0);
+
+                if(!creatingCheck) {
+                    if(minX<=x&&x<=maxX && minY<=y&&y<=maxY) { // 선택된 폴리라인의 경로에 있을 시 수행
+                        escapeCheckCount = 0; // 이탈 경고 횟수 초기화
+                        if(speed > 200)
+                            speed = polylineVector.get(pointNum-1).speed;
+
+                        polylineVector.add(new PolylinePoint(pointNum, x, y, time, distance, speed));
+                        pointNum++;
+
+
+                        Log.i("onCurrentLocationUpdate", "pointNum : " + Integer.toString(pointNum));
+                    } else {
+                        escapeCheckCount++; // 이탈 횟수 + 1
+                        if(speed > 200)
+                            speed = polylineVector.get(pointNum-1).speed;
+
+                        polylineVector.add(new PolylinePoint(pointNum, x, y, time, distance, speed));
+                        pointNum++;
+                        Toast.makeText(this, "이탈 경고 횟수 : " + escapeCheckCount, Toast.LENGTH_SHORT).show(); // 사용자에게 이탈 횟수 알림
+                        // if(escapeCheck > 7) // 이탈 횟수 3회 초과 시 강제 종료
+                        // Toast.makeText(this, "이탈 경고 횟수 : " + escapeCheck, Toast.LENGTH_SHORT).show(); // 사용자에게 이탈 횟수 알림
+                        // if(deleteDriveTable) // 테이블 생성했을 시 삭제
+//                     deleteRecordTable(tableNum, userID);
+                    }
+                } else {
+                    pointNum++;
+                    polyline.addPoint(MapPoint.mapPointWithGeoCoord(x, y));
+                    if(speed > 200)
+                        speed = polylineVector.get(pointNum-1).speed;
+                    polylineVector.add(new PolylinePoint(pointNum, x, y, time, distance, speed));
+
+                    Log.i("onCurrentLocationUpdate", "time : " + time);
+                    Log.i("onCurrentLocationUpdate", Integer.toString(polylineVector.size()));
+                    mapView.addPolyline(polyline);
+                    Log.i("onCurrentLocationUpdate", "update");
+                }
+                Log.i("onCurrentLocationUpdate", "time : " + time);
+            }
+            }
+
      /*   if(targeting) {
             boolean dd = false;
             for(String key : keys) {
@@ -473,6 +517,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
     }
 
     public void onClickCreate(View view) {
+        activityStatus = "CreateCourse";
         creatingCheck = true;
         create_button.setVisibility(View.GONE);
         drive_button.setVisibility(View.GONE);
@@ -489,35 +534,42 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         createCourseTable.execute("http://" + IP_ADDRESS + "/CheckTable.php");
     }
 
+    /*
+    TimerTask fiveSecond = new TimerTask() {
+        int count = 5;
+        @Override
+        public void run() {
+            count--;
+            count_text.setText(Integer.toString(count));
+            Log.i("count",Integer.toString(count) );
+            if(count == -1) {
+                count_text.setVisibility(View.GONE);
+                cancel();
+            }
 
-
-    public void onClickCreateStart(View view) {
+        }
+    };
+    Timer timer = new Timer();
+    */
+    public void onClickCreateStart(View view) throws InterruptedException {
         create_start_button.setVisibility(View.GONE);
         create_end_button.setVisibility(View.VISIBLE);
+        /* int count = 5;
+        while(count > 0) {
+            count_text.setText(Integer.toString(count));
+            Log.i("count",Integer.toString(count) );
+            count--;
+            Thread.sleep(1000);
+        }
+        */
+        Log.i("시작", (String) count_text.getText());
 
-        TimerTask tt = new TimerTask() {
-            int count = 5;
-            @Override
-            public void run() {
-                count_text.setText(Integer.toString(count));
-                count--;
-                if(count == 0)
-                    cancel();
-            }
-        };
-
-        Timer timer = new Timer();
-        timer.schedule(tt, 0, 1000);
-
-        startTime = SystemClock.elapsedRealtime();
-        System.out.println(startTime);
-        myTimer.sendEmptyMessage(0);
         driving = true;
-        count_text.setVisibility(View.GONE);
+
+
 
 
     }
-
 
     public void onClickCreateEnd(View view) {
 
@@ -551,6 +603,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         myTimer.removeMessages(0);
         mapView.fitMapViewAreaToShowPolyline(polyline);
     }
+
     public void onClickSaveCourse(View view) {
 
         insertData(tableNum, userID, polylineVector);
@@ -708,6 +761,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         }
 
     }
+
     public void getTargetRecord(String target) {
         int pointNum;
         float x, y, distance, speed;
@@ -742,7 +796,6 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         }
 
     }
-
 
 
     public void onClickDriveStart(View view) {
@@ -816,6 +869,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         driveRecordDialog = new DriveRecordDialog(this, saveListener, exitListener);
         driveRecordDialog.show();
     }
+
     private View.OnClickListener saveListener = new View.OnClickListener() {
         public void onClick(View v) {
             insertRecordData(tableNum, userID, polylineVector);
@@ -848,14 +902,11 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
 
     private View.OnClickListener exitListener = new View.OnClickListener() {
         public void onClick(View v) {
-
-
             if(deleteDriveTable)
                 deleteRecordTable(tableNum, userID);
             Intent intent = new Intent(getApplicationContext(),MainActivity.class);
             startActivity(intent);
             finish();
-
         }
     };
 
@@ -1016,6 +1067,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
             e.printStackTrace();
         }
     }
+
     private void insertRecordData(int tableNum, String id, Vector<PolylinePoint> vector) {
         try {
             InsertRecordData request = new InsertRecordData("http://" + IP_ADDRESS + "/InsertRecordData.php");
@@ -1045,6 +1097,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
             e.printStackTrace();
         }
     }
+
     private void deleteRecordTable(int tableNum, String id) {
         try {
             DeleteTable request = new DeleteTable("http://" + IP_ADDRESS + "/DeleteRecordTable.php");
