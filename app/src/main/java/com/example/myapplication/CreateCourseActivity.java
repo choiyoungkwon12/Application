@@ -15,12 +15,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -28,6 +30,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import net.daum.mf.map.api.MapLayout;
 import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPoint;
 import net.daum.mf.map.api.MapPolyline;
@@ -122,26 +125,36 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
     private boolean gpsEnable = false;
     private ProgressDialog pd;
     private int timeCount = 0;
-
+    private String distanceStr="", speedStr="";
+    private float minusDistance;
+    private ConstraintLayout layout;
+    private ViewGroup viewGroup;
+    private MapLayout mapLayout;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
+        super.onCreate(savedInstanceState);
         activityStatus = "Main";
         Log.i(LOG_TAG, "onCreate.Start");
 
 
+        setContentView(R.layout.activity_create_course);
 
-        super.onCreate(savedInstanceState);
+
+        mapLayout = new MapLayout(this);
+        mapView = mapLayout.getMapView();
+        viewGroup = (ViewGroup) findViewById(R.id.map_view);
+        viewGroup.addView(mapLayout);
+
         mContext = getApplicationContext();
 
         Intent intent = getIntent();
 
         showProgress("로딩중");
 
-        setContentView(R.layout.activity_create_course);
-        mapView = (MapView) findViewById(R.id.map_view);
+
+        // mapView = (MapView) findViewById(R.id.map_view);
         mapView.setCurrentLocationEventListener(this);
         if (!checkLocationServicesStatus()) {
 
@@ -376,8 +389,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mapView.setCurrentLocationTrackingMode(MapView.CurrentLocationTrackingMode.TrackingModeOff);
-        mapView.setShowCurrentLocationMarker(false);
+
         finalize();
         finish();
     }
@@ -423,9 +435,21 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
                     startTime = SystemClock.elapsedRealtime();
                     System.out.println(startTime);
                     myTimer.sendEmptyMessage(0);
+                    if(distanceStr.length()!=0) {
+                        distance -= Float.parseFloat(distanceStr.trim());
+                    }
                     timeCount = -1;
                 }
+                if(speedStr.length()!=0 && distanceStr.length()!=0) {
+                    speed = Float.parseFloat(speedStr.trim());
+                    distance += Float.parseFloat(distanceStr.trim());
+                    sumSpeed += speed;
+                    Log.i("distance",Float.toString(distance));
+                    moving_distance_text.setText("거리 " + distanceStr + "m");
+                    speed_text.setText("속도  " + speedStr + "km/h");
+                }
 
+                handleCount++;
                 String time = getTimeOut();
 
                 MapPoint.GeoCoordinate mapPointGeo = currentLocation.getMapPointGeoCoord();
@@ -445,7 +469,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
                         Log.i("onCurrentLocationUpdate", "pointNum : " + Integer.toString(pointNum));
                     } else {
                         escapeCheckCount++; // 이탈 횟수 + 1
-                        if(speed > 200)
+                        if(speed > 200 && polylineVector.size()>2)
                             speed = polylineVector.get(pointNum-1).speed;
 
                         polylineVector.add(new PolylinePoint(pointNum, x, y, time, distance, speed));
@@ -562,7 +586,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
             Thread.sleep(1000);
         }
         */
-        Log.i("시작", (String) count_text.getText());
+
 
         driving = true;
 
@@ -618,15 +642,22 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         finish();
     }
 
-    public void onClickCreateExit(View view) {
+    public void onClickCreateExit(View view) throws InterruptedException {
 
         create_exit_button.setVisibility(View.GONE);
         save_course_button.setVisibility(View.GONE);
         deleteTable(tableNum, userID);
+        // layout.removeView(mapView);
+        Intent intent = new Intent(getApplicationContext(),EmptyForChange.class);
+        intent.putExtra("id", userID);
+        mapLayout.removeAllViews();
 
-        Intent intent = new Intent(getApplicationContext(),MainActivity.class);
-        startActivity(intent);
         finish();
+        startActivity(intent);
+
+
+
+
     }
 
     public void onClickDrive(View view) {
@@ -830,8 +861,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         Log.i("minX,maxX,minY,maxY",Float.toString(minX) + " " + maxX + " " + minY + " "+maxY);
 
 
-        startTime = SystemClock.elapsedRealtime();
-        myTimer.sendEmptyMessage(0);
+
 
         keys = targetingHash.keySet();
         selectPolylinePointArr =  selectedPolyline.getMapPoints();
@@ -1113,7 +1143,6 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         }
     }
 
-
     class OutputCourse extends AsyncTask<String, Integer, String> {
 
         int point_num;
@@ -1283,19 +1312,9 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
                         Log.d("str-----------", strMsg + "--------------");
 
                         String str[] = strMsg.split("bt");
-                        speed = Float.parseFloat(str[1].replace("km/h","").trim());
-                        sumSpeed += speed;
-                        handleCount++;
-                        if(str[0].contains("km"))
-                            distance += Float.parseFloat(str[0].replace("km","").trim()) * 1000.0d;
-                        else
-                            distance += Float.parseFloat(str[0].replace("m","").trim());
 
-                        Log.i("distance",Float.toString(distance));
-                        moving_distance_text.setText("거리 " + str[0]);
-                        speed_text.setText("속도  " + str[1]);
-
-
+                        distanceStr = str[0];
+                        speedStr = str[1];
                         break;
                     }
                 case BluetoothManager.MESSAGE_TOAST:

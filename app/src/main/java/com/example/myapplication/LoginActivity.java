@@ -157,9 +157,10 @@ public class LoginActivity extends AppCompatActivity {
                             case 1: {
                                 if(id.equals(ID)&&pw.equals(PW)) {
                                     Toast.makeText(LoginActivity.this, "로그인 성공", Toast.LENGTH_SHORT).show();
-                                    Intent intent = new Intent(getApplicationContext(), CreateCourseActivity.class);
+                                    Intent intent = new Intent(getApplicationContext(), EmptyForChange.class);
                                     intent.putExtra("id", id);
                                     startActivity(intent);
+                                    finish();
                                 } else if(i==(results.length())) {
                                     Toast.makeText(LoginActivity.this, "ID가 없습니다.", Toast.LENGTH_SHORT).show();
                                 }
