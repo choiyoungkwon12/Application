@@ -1,6 +1,7 @@
 package com.example.myapplication;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
@@ -56,28 +57,24 @@ import java.util.Vector;
 
 public class CreateCourseActivity extends AppCompatActivity implements MapView.CurrentLocationEventListener, MapReverseGeoCoder.ReverseGeoCodingResultListener, MapView.POIItemEventListener, MapView.MapViewEventListener {
 
-    private static final String LOG_TAG = "CreateCourseActivity";
-    private static final String TAG = "CreateCourseActivity";
+    private final String TAG = "CreateCourseActivity";
     private MapView mapView = null;
 
-    static Vector<RecordPoint> recordVector = new Vector<>();
     private MapPolyline polyline = new MapPolyline();
     private long startTime = 0;
     private Button create_button, create_start_button, create_end_button, create_exit_button, save_course_button, drive_button, drive_start_button, drive_end_button, target_select_button, select_finish_button;
     private boolean driving = false;
-    static String IP_ADDRESS = "cpbike.dothome.co.kr/cpbike";
-    static float speed=0, distance=0;
-    static String time="";
+    static final String IP_ADDRESS = "cpbike.dothome.co.kr/cpbike";
+    static float speed, distance;
+    static String time;
     private TextView time_textview, speed_text, moving_distance_text, connection_status_textview, count_text;
     private ListView target_list;
     private int pointNum=0;
     private HashMap<Integer, Boolean> pOIItemSelectedStatus = new HashMap<>();
-    static int selectedNum=0;
+    static int selectedNum;
     private MapPolyline selectedPolyline = new MapPolyline();
-    static Vector<String> targetIDvector = new Vector<>();
+    static Vector<String> targetIDvector;
     private String selectedTarget="";
-    static Vector<RecordPoint> selectedTargetRecord = new Vector<>();
-    private HashMap<String, Integer> targetRecordHashMap = new HashMap<>();
     static Context mContext;
     static String userID="";
     static int tableNum=0;
@@ -86,15 +83,16 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
     private boolean deleteDriveTable = false;
     private float AverageSpeed = 0;
     static String activityStatus = "";
+    final Activity activity = this;
 
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
     private static final int PERMISSIONS_REQUEST_CODE = 100;
     String[] REQUIRED_PERMISSIONS  = {Manifest.permission.ACCESS_FINE_LOCATION};
 
 
-    static Vector<PolylinePoint> targetRecordVector = new Vector<>();
-    static Vector<PolylinePoint> postUserRecordVector = new Vector<>();
-    static Vector<PolylinePoint> polylineVector = new Vector<>();
+    static Vector<PolylinePoint> targetRecordVector;
+    static Vector<PolylinePoint> postUserRecordVector;
+    static Vector<PolylinePoint> polylineVector;
 
     private BluetoothManager mBtManager = null;
     private ConnectionInfo mConnectionInfo = null;      // Remembers connection info when BT connection is made
@@ -107,9 +105,9 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
 
 
     private BtHandler mHandler;
-    static boolean checkUsedCourse = false;
+    static boolean checkUsedCourse;
     private int handleCount = 0;
-    static Vector<TargetRecord> targetRecord = new Vector<>();
+    static Vector<TargetRecord> targetRecord;
     private int primaryColor = Color.argb(255, 255, 0, 0);
     private int selectedColor = Color.argb(255, 0, 0, 255);
     private float courseDistance = 0;
@@ -121,7 +119,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
     private MapPoint[] selectPolylinePointArr;
     private int pointPosition = 0;
     private float minX=0, minY=0, maxX=0, maxY=0;
-    static boolean checkUserTarget = false;
+    static boolean checkUserTarget;
     private boolean gpsEnable = false;
     private ProgressDialog pd;
     private int timeCount = 0;
@@ -136,8 +134,23 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         activityStatus = "Main";
-        Log.i(LOG_TAG, "onCreate.Start");
+        Log.i(TAG, "onCreate.Start");
 
+        speed = 0;
+        distance = 0;
+        time = "";
+        selectedNum = 0;
+        targetIDvector = new Vector<>();
+        mContext = null;
+        userID = "";
+        tableNum=0;
+        activityStatus="";
+        targetRecordVector = new Vector<>();
+        postUserRecordVector = new Vector<>();
+        polylineVector = new Vector<>();
+        checkUsedCourse = false;
+        checkUserTarget = false;
+        targetRecord = new Vector<>();
 
         setContentView(R.layout.activity_create_course);
 
@@ -152,7 +165,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         Intent intent = getIntent();
 
         showProgress("로딩중");
-
+        Log.i("pointNum",Integer.toString(pointNum));
 
         // mapView = (MapView) findViewById(R.id.map_view);
         mapView.setCurrentLocationEventListener(this);
@@ -389,9 +402,10 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
+        mapView.removeAllPolylines();
+        mapView.removeAllPOIItems();
         finalize();
-        finish();
+
     }
 
     @Override
@@ -475,6 +489,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
                         polylineVector.add(new PolylinePoint(pointNum, x, y, time, distance, speed));
                         pointNum++;
                         Toast.makeText(this, "이탈 경고 횟수 : " + escapeCheckCount, Toast.LENGTH_SHORT).show(); // 사용자에게 이탈 횟수 알림
+                        Log.i("onCurrentLocationUpdate", "pointNum : " + Integer.toString(pointNum));
                         // if(escapeCheck > 7) // 이탈 횟수 3회 초과 시 강제 종료
                         // Toast.makeText(this, "이탈 경고 횟수 : " + escapeCheck, Toast.LENGTH_SHORT).show(); // 사용자에게 이탈 횟수 알림
                         // if(deleteDriveTable) // 테이블 생성했을 시 삭제
@@ -487,8 +502,8 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
                         speed = polylineVector.get(pointNum-1).speed;
                     polylineVector.add(new PolylinePoint(pointNum, x, y, time, distance, speed));
 
-                    Log.i("onCurrentLocationUpdate", "time : " + time);
-                    Log.i("onCurrentLocationUpdate", Integer.toString(polylineVector.size()));
+                    Log.i("onCurrentLocationUpdate", "pointNum : " + Integer.toString(pointNum));
+                    Log.i("onCurrentLocationUpdate", "polylineVector.size:"+Integer.toString(polylineVector.size()));
                     mapView.addPolyline(polyline);
                     Log.i("onCurrentLocationUpdate", "update");
                 }
@@ -650,9 +665,12 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         // layout.removeView(mapView);
         Intent intent = new Intent(getApplicationContext(),EmptyForChange.class);
         intent.putExtra("id", userID);
+        mapView.removeAllPOIItems();
+        mapView.removeAllPolylines();
+        mapView.removeAllPolylines();
         mapLayout.removeAllViews();
 
-        finish();
+        activity.finish();
         startActivity(intent);
 
 
@@ -759,7 +777,6 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
 
     }
 
-
     public void getPostUserRecord(String target) {
         int pointNum;
         float x, y, distance, speed;
@@ -827,7 +844,6 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         }
 
     }
-
 
     public void onClickDriveStart(View view) {
 
@@ -909,9 +925,15 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
             else
                 insertRanking(tableNum, userID, speed, distance, time);
 
-            Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+            Intent intent = new Intent(getApplicationContext(),EmptyForChange.class);
+            intent.putExtra("id", userID);
+            mapView.removeAllPOIItems();
+            mapView.removeAllPolylines();
+            mapView.removeAllPolylines();
+            mapLayout.removeAllViews();
+
+            activity.finish();
             startActivity(intent);
-            finish();
 
         }
     };
@@ -934,9 +956,15 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         public void onClick(View v) {
             if(deleteDriveTable)
                 deleteRecordTable(tableNum, userID);
-            Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+            Intent intent = new Intent(getApplicationContext(),EmptyForChange.class);
+            intent.putExtra("id", userID);
+            mapView.removeAllPOIItems();
+            mapView.removeAllPolylines();
+            mapView.removeAllPolylines();
+            mapLayout.removeAllViews();
+
+            activity.finish();
             startActivity(intent);
-            finish();
         }
     };
 
