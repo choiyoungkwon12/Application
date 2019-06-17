@@ -98,13 +98,13 @@ public class LoginActivity extends AppCompatActivity {
     public void onClickJoinUser(View view) {
         button_id = 2;
         CheckIDPW getData = new CheckIDPW();
-        getData.execute("http://" + CreateCourseActivity.IP_ADDRESS + "/CheckIDPW.php");
+        getData.execute("http://" + IP_ADDRESS + "/CheckIDPW.php");
     }
 
     public void onClickLogin(View view) {
         button_id = 1;
         CheckIDPW getData = new CheckIDPW();
-        getData.execute("http://"+CreateCourseActivity.IP_ADDRESS+"/CheckIDPW.php");
+        getData.execute("http://"+IP_ADDRESS+"/CheckIDPW.php");
 
     }
     class CheckIDPW extends AsyncTask<String, Integer, String> {
@@ -160,7 +160,7 @@ public class LoginActivity extends AppCompatActivity {
                                     Intent intent = new Intent(getApplicationContext(), EmptyForChange.class);
                                     intent.putExtra("id", id);
                                     startActivity(intent);
-                                    finish();
+
                                 } else if(i==(results.length())) {
                                     Toast.makeText(LoginActivity.this, "ID가 없습니다.", Toast.LENGTH_SHORT).show();
                                 }
@@ -175,7 +175,7 @@ public class LoginActivity extends AppCompatActivity {
 
                                         String idpw = "(\""+id+"\""+","+"\""+pw+"\")";
                                         Log.i("idpw", "" + idpw);
-                                        CreateUser request = new CreateUser("http://" + CreateCourseActivity.IP_ADDRESS + "/CreateUser.php");
+                                        CreateUser request = new CreateUser("http://" + IP_ADDRESS + "/CreateUser.php");
                                         String result = request.PhPtest(idpw);
                                         if(result.equals("1")){
                                             Toast.makeText(LoginActivity.this, "회원가입에 성공했습니다.", Toast.LENGTH_SHORT).show();
@@ -349,7 +349,7 @@ public class LoginActivity extends AppCompatActivity {
                         String strMsg = new String(readBuf, 0, msg.arg1);
                         // parse string
                         if(strMsg.contains("b")) {
-                            Intent intent = new Intent(LoginActivity.this, CreateCourseActivity.class);
+                            Intent intent = new Intent(LoginActivity.this, EmptyForChange.class);
                             startActivity(intent);
                         } else if(strMsg.contains("c")) {
                         }

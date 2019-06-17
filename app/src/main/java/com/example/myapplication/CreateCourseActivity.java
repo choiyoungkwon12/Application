@@ -130,6 +130,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
     private MapLayout mapLayout;
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -161,9 +162,9 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         viewGroup.addView(mapLayout);
 
         mContext = getApplicationContext();
-
+        Log.i("log","1");
         Intent intent = getIntent();
-
+        Log.i("log","2");
         showProgress("로딩중");
         Log.i("pointNum",Integer.toString(pointNum));
 
@@ -206,7 +207,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
 
         mapView.setMapTilePersistentCacheEnabled(true);
         initialize();
-
+        Log.i("log","3");
         userID = intent.getExtras().getString("id");
         mHandler = new BtHandler();
         OutputCourse getData = new OutputCourse();
@@ -299,36 +300,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         }
 
     }
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        switch (activityStatus) {
-            case "Main" : {
-                Log.i("onBackPressed", activityStatus);
-                Intent intent = new Intent(getApplicationContext(),LoginActivity.class);
-                startActivity(intent);
-                break;
-            }
-            case "CreateCourse" : {
-                Log.i("onBackPressed", activityStatus);
 
-                create_button.setVisibility(View.VISIBLE);
-                drive_button.setVisibility(View.VISIBLE);
-                drive_button.setEnabled(false); // 코스 선택 미완료 상태인 초기 코스 주행 버튼 비활성화(영권)
-
-                creatingCheck = false;
-                create_start_button.setVisibility(View.GONE);
-                moving_distance_text.setVisibility(View.GONE);
-                speed_text.setVisibility(View.GONE);
-                time_textview.setVisibility(View.GONE);
-                OutputCourse getData = new OutputCourse();
-                getData.execute("http://" + IP_ADDRESS + "/OutputCourse.php");
-                deleteTable(tableNum, userID);
-                break;
-            }
-
-        }
-    }
     //여기부터는 GPS 활성화를 위한 메소드들
     private void showDialogForLocationServiceSetting() {
 
@@ -450,13 +422,13 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
                     System.out.println(startTime);
                     myTimer.sendEmptyMessage(0);
                     if(distanceStr.length()!=0) {
-                        distance -= Float.parseFloat(distanceStr.trim());
+                        minusDistance -= Float.parseFloat(distanceStr.trim());
                     }
                     timeCount = -1;
                 }
                 if(speedStr.length()!=0 && distanceStr.length()!=0) {
                     speed = Float.parseFloat(speedStr.trim());
-                    distance += Float.parseFloat(distanceStr.trim());
+                    distance += Float.parseFloat(distanceStr.trim())-minusDistance;
                     sumSpeed += speed;
                     Log.i("distance",Float.toString(distance));
                     moving_distance_text.setText("거리 " + distanceStr + "m");
@@ -652,9 +624,15 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         create_exit_button.setVisibility(View.GONE);
         save_course_button.setVisibility(View.GONE);
 
-        Intent intent = new Intent(getApplicationContext(),MainActivity.class);
+        Intent intent = new Intent(getApplicationContext(),EmptyForChange.class);
+        intent.putExtra("id", userID);
+        mapView.removeAllPOIItems();
+        mapView.removeAllPolylines();
+        mapView.removeAllPolylines();
+        mapLayout.removeAllViews();
+
+
         startActivity(intent);
-        finish();
     }
 
     public void onClickCreateExit(View view) throws InterruptedException {
@@ -670,7 +648,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         mapView.removeAllPolylines();
         mapLayout.removeAllViews();
 
-        activity.finish();
+
         startActivity(intent);
 
 
@@ -770,7 +748,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
 
         }
         if (selectedTargetID.equals(userID))  // 비교하는 대상이 본인 아이디 일 시
-            checkUserTarget = false;
+            checkUserTarget = true;
         if(checkUsedCourse && !checkUserTarget) {
             getPostUserRecord("record" + tableNum + userID);
         }
@@ -932,7 +910,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
             mapView.removeAllPolylines();
             mapLayout.removeAllViews();
 
-            activity.finish();
+
             startActivity(intent);
 
         }
@@ -963,7 +941,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
             mapView.removeAllPolylines();
             mapLayout.removeAllViews();
 
-            activity.finish();
+
             startActivity(intent);
         }
     };
@@ -1303,6 +1281,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
         mBtManager = BluetoothManager.getInstance(mContext, mHandler);
         if(mBtManager != null)
             mBtManager.setHandler(mHandler);
+
 
         // Get local Bluetooth adapter
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();

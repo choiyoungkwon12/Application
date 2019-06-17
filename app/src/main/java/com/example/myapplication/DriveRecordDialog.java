@@ -63,13 +63,14 @@ public class DriveRecordDialog extends Dialog {
 
 
 
-        if(CreateCourseActivity.checkUsedCourse) {
+        if(CreateCourseActivity.checkUsedCourse && !CreateCourseActivity.checkUserTarget) {
             if(polyline.size()<targetRecord.size())
                 count = polyline.size();
-            else if(targetRecord.size()<userPostRecord.size())
+            else
                 count = targetRecord.size();
-            else if(userPostRecord.size() < polyline.size())
+            if(count > userPostRecord.size())
                 count = userPostRecord.size();
+
         } else {
             if(polyline.size()<targetRecord.size())
                 count = polyline.size();
@@ -77,7 +78,10 @@ public class DriveRecordDialog extends Dialog {
                 count = targetRecord.size();
         }
 
+
+
         Log.i("DriveRecordDialog","checkUsedCourse : " + Boolean.toString(CreateCourseActivity.checkUsedCourse));
+        Log.i("DriveRecordDialog","checkUserTarget : " + Boolean.toString(CreateCourseActivity.checkUserTarget));
         Log.i("DriveRecordDialog","count : " + Float.toString(count));
 
 
@@ -85,7 +89,7 @@ public class DriveRecordDialog extends Dialog {
             float temp = (float) i;
             user.add(new Entry(polyline.get(i).distance, polyline.get(i).speed));
             target.add(new Entry(targetRecord.get(i).distance, targetRecord.get(i).speed));
-            if(CreateCourseActivity.checkUsedCourse)
+            if(CreateCourseActivity.checkUsedCourse && !CreateCourseActivity.checkUserTarget)
                 postUser.add(new Entry(userPostRecord.get(i).distance, userPostRecord.get(i).speed));
 
         }
@@ -109,8 +113,8 @@ public class DriveRecordDialog extends Dialog {
         userDataset.setColor(Color.BLUE);
         LineDataSet targetDataset = new LineDataSet(target, "target");
         userDataset.setColor(Color.RED);
-        if(CreateCourseActivity.checkUsedCourse) {
-            LineDataSet postUserDataset = new LineDataSet(postUser, "target");
+        if(CreateCourseActivity.checkUsedCourse && !CreateCourseActivity.checkUserTarget) {
+            LineDataSet postUserDataset = new LineDataSet(postUser, "postUser");
             postUserDataset.setColor(Color.BLACK);
             lineData.addDataSet(postUserDataset);
         }

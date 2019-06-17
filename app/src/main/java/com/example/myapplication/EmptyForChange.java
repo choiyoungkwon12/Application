@@ -21,7 +21,7 @@ public class EmptyForChange extends AppCompatActivity {
         intent = new Intent(getApplicationContext(), CreateCourseActivity.class);
         intent.putExtra("id", id);
         startActivity(intent);
-        finish();
+
     }
 
 
