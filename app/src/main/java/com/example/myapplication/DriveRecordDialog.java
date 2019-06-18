@@ -101,10 +101,11 @@ public class DriveRecordDialog extends Dialog {
         XAxis xAxis = lineChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
 
-        YAxis yLAxis = lineChart.getAxisLeft();
-        yLAxis.setTextColor(Color.BLACK);
+
+
 
         YAxis yRAxis = lineChart.getAxisRight();
+        yRAxis.setTextColor(Color.BLACK);
         yRAxis.setDrawLabels(false);
         yRAxis.setDrawAxisLine(false);
         yRAxis.setDrawGridLines(false);
@@ -122,6 +123,9 @@ public class DriveRecordDialog extends Dialog {
 
         lineData.addDataSet(userDataset);
         lineData.addDataSet(targetDataset);
+        lineChart.getDescription().setEnabled(false);
+        lineChart.setAutoScaleMinMaxEnabled(true);
+        lineChart.setDrawMarkers(false);
         lineChart.setData(lineData);
 
     }

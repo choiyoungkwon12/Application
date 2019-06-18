@@ -124,10 +124,11 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
     private ProgressDialog pd;
     private int timeCount = 0;
     private String distanceStr="", speedStr="";
-    private float minusDistance;
+    private float minusDistance=0;
     private ConstraintLayout layout;
     private ViewGroup viewGroup;
     private MapLayout mapLayout;
+    private boolean firstDistance=true;
 
 
 
@@ -421,17 +422,19 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
                     startTime = SystemClock.elapsedRealtime();
                     System.out.println(startTime);
                     myTimer.sendEmptyMessage(0);
-                    if(distanceStr.length()!=0) {
-                        minusDistance -= Float.parseFloat(distanceStr.trim());
-                    }
                     timeCount = -1;
+                }
+                if(!distanceStr.isEmpty() && firstDistance) {
+                    minusDistance = Float.parseFloat(distanceStr.trim());
+                    firstDistance = false;
                 }
                 if(speedStr.length()!=0 && distanceStr.length()!=0) {
                     speed = Float.parseFloat(speedStr.trim());
-                    distance += Float.parseFloat(distanceStr.trim())-minusDistance;
+                    distance = Float.parseFloat(distanceStr.trim())-minusDistance;
+
                     sumSpeed += speed;
                     Log.i("distance",Float.toString(distance));
-                    moving_distance_text.setText("거리 " + distanceStr + "m");
+                    moving_distance_text.setText("거리 " + String.format("%.2f",distance) + "m");
                     speed_text.setText("속도  " + speedStr + "km/h");
                 }
 
@@ -445,7 +448,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
                 if(!creatingCheck) {
                     if(minX<=x&&x<=maxX && minY<=y&&y<=maxY) { // 선택된 폴리라인의 경로에 있을 시 수행
                         escapeCheckCount = 0; // 이탈 경고 횟수 초기화
-                        if(speed > 200)
+                        if(speed > 200 && polylineVector.size()>2)
                             speed = polylineVector.get(pointNum-1).speed;
 
                         polylineVector.add(new PolylinePoint(pointNum, x, y, time, distance, speed));
@@ -1253,7 +1256,7 @@ public class CreateCourseActivity extends AppCompatActivity implements MapView.C
                 MapPOIItem targetCurrentPoint = new MapPOIItem();
                 targetCurrentPoint.setMarkerType(MapPOIItem.MarkerType.CustomImage);
                 targetCurrentPoint.setCustomImageAnchorPointOffset(new MapPOIItem.ImageOffset(7,0));
-                targetCurrentPoint.setCustomImageResourceId(R.drawable.revise_marker);
+                targetCurrentPoint.setCustomImageResourceId(R.drawable.map_pin_red);
                 targetCurrentPoint.setMapPoint(selectedPolyline.getPoint(targetingHash.get(st)-1));
                 targetCurrentPoint.setItemName("f");
                 targetCurrentPoint.setTag(3);
