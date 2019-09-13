@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -22,11 +23,13 @@ public class DriveRecordDialog extends Dialog {
 
     private LineChart lineChart;
     private Button save_record_button, exit_button;
+    private TextView targetCalorie, userCalorie;
     private View.OnClickListener mSaveListener;
     private View.OnClickListener mExitListener;
     Vector<PolylinePoint> polyline = CreateCourseActivity.polylineVector;
     Vector<PolylinePoint> targetRecord = CreateCourseActivity.targetRecordVector;
     Vector<PolylinePoint> userPostRecord = CreateCourseActivity.postUserRecordVector;
+    private double targetSumDistance=0, userSumDistance=0;
 
     public DriveRecordDialog(Context context, View.OnClickListener saveListener, View.OnClickListener exitListener) {
         super(context);
@@ -42,6 +45,8 @@ public class DriveRecordDialog extends Dialog {
         setContentView(R.layout.dialog_drive_record);
         save_record_button = (Button) findViewById(R.id.save_record_button);
         exit_button = (Button) findViewById(R.id.exit_button);
+        targetCalorie = (TextView) findViewById(R.id.textView2);
+        userCalorie = (TextView) findViewById(R.id.textView3);
 
 
 
@@ -88,13 +93,16 @@ public class DriveRecordDialog extends Dialog {
         for(int i=0; i<count; i++) {
             float temp = (float) i;
             user.add(new Entry(polyline.get(i).distance, polyline.get(i).speed));
+            userSumDistance+=polyline.get(i).distance;
             target.add(new Entry(targetRecord.get(i).distance, targetRecord.get(i).speed));
+            targetSumDistance+=targetRecord.get(i).distance;
             if(CreateCourseActivity.checkUsedCourse && !CreateCourseActivity.checkUserTarget)
                 postUser.add(new Entry(userPostRecord.get(i).distance, userPostRecord.get(i).speed));
 
         }
 
-
+        targetCalorie.setText(441.0*targetSumDistance/20000 + "");
+        userCalorie.setText(441.0*userSumDistance/20000 + "");
 
         LineData lineData = new LineData();
 
