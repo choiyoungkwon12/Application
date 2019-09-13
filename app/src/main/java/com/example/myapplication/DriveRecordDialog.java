@@ -108,10 +108,7 @@ public class DriveRecordDialog extends Dialog {
 
         XAxis xAxis = lineChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-
-
-
-
+        
         YAxis yRAxis = lineChart.getAxisRight();
         yRAxis.setTextColor(Color.BLACK);
         yRAxis.setDrawLabels(false);
